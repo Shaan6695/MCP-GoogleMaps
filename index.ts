@@ -136,7 +136,7 @@ async function getGeocode(address: string) {
 
 // Tool definition for Geocode to Address
 const Geocode_To_Address: Tool = {
-  name: "maps_reverse_geocode",
+  name: "geocode_to_address",
   description: "Convert geo-coordinates into an Address",
   inputSchema: {
     type: "object",
@@ -261,5 +261,67 @@ async function getPlaceSearch(
     isError: false
   };
 }
+
+// Tool definition for Specific Place Details
+const Specific_Place_Details: Tool = {
+  name: "maps_place_details",
+  description: "Get detailed information about a specific place",
+  inputSchema: {
+    type: "object",
+    properties: {
+      place_id: {
+        type: "string",
+        description: "The place ID to get details for"
+      }
+    },
+    required: ["place_id"]
+  }
+};
+
+// API handler for Specific Place Details
+async function handlePlaceDetails(place_id: string) {
+  const url = new URL("https://maps.googleapis.com/maps/api/place/details/json");
+  url.searchParams.append("place_id", place_id);
+  url.searchParams.append("key", GOOGLE_MAPS_API_KEY);
+
+  const response = await fetch(url.toString());
+  const data = await response.json() as PlacesDetailsResponse;
+
+  if (data.status !== "OK") {
+    return {
+      content: [{
+        type: "text",
+        text: `Place details request failed: ${data.error_message || data.status}`
+      }],
+      isError: true
+    };
+  }
+
+  return {
+    content: [{
+      type: "text",
+      text: JSON.stringify({
+        name: data.result.name,
+        formatted_address: data.result.formatted_address,
+        location: data.result.geometry.location,
+        formatted_phone_number: data.result.formatted_phone_number,
+        website: data.result.website,
+        rating: data.result.rating,
+        reviews: data.result.reviews,
+        opening_hours: data.result.opening_hours
+      }, null, 2)
+    }],
+    isError: false
+  };
+}
+
+// List of all the tools
+const MAPS_TOOLS = [
+  Geocode_Tool,
+  Geocode_To_Address,
+  Search_Places,
+  Specific_Place_Details,
+  
+] as const;
 
 
