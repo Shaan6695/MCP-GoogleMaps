@@ -22,5 +22,9 @@
   "homepage": "https://github.com/Shaan6695/MCP-GoogleMaps#readme",
   "devDependencies": {
     "@types/node": "^22.15.18"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.11.2",
+    "node-fetch": "^3.3.2"
   }
 }
