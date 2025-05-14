@@ -279,7 +279,7 @@ const Specific_Place_Details: Tool = {
 };
 
 // API handler for Specific Place Details
-async function handlePlaceDetails(place_id: string) {
+async function getPlaceDetails(place_id: string) {
   const url = new URL("https://maps.googleapis.com/maps/api/place/details/json");
   url.searchParams.append("place_id", place_id);
   url.searchParams.append("key", GOOGLE_MAPS_API_KEY);
@@ -323,5 +323,84 @@ const MAPS_TOOLS = [
   Specific_Place_Details,
   
 ] as const;
+
+// Server setup
+const server = new Server(
+  {
+    name: "mcp-server/google-places-mcp",
+    version: "0.1.0",
+  },
+  {
+    capabilities: {
+      tools: {},
+    },
+  },
+);
+
+// Set up request handlers
+server.setRequestHandler(ListToolsRequestSchema, async () => ({
+  tools: MAPS_TOOLS,
+}));
+
+server.setRequestHandler(CallToolRequestSchema, async (request) => {
+  try {
+    switch (request.params.name) {
+      case "maps_geocode": {
+        const { address } = request.params.arguments as { address: string };
+        return await getGeocode(address);
+      }
+
+      case "maps_reverse_geocode": {
+        const { latitude, longitude } = request.params.arguments as {
+          latitude: number;
+          longitude: number;
+        };
+        return await getGeocode_To_Address(latitude, longitude);
+      }
+
+      case "maps_search_places": {
+        const { query, location, radius } = request.params.arguments as {
+          query: string;
+          location?: { latitude: number; longitude: number };
+          radius?: number;
+        };
+        return await getPlaceSearch(query, location, radius);
+      }
+
+      case "maps_place_details": {
+        const { place_id } = request.params.arguments as { place_id: string };
+        return await getPlaceDetails(place_id);
+      }
+
+      default:
+        return {
+          content: [{
+            type: "text",
+            text: `Unknown tool: ${request.params.name}`
+          }],
+          isError: true
+        };
+    }
+  } catch (error) {
+    return {
+      content: [{
+        type: "text",
+        text: `Error: ${error instanceof Error ? error.message : String(error)}`
+      }],
+      isError: true
+    };
+  }
+});
+
+async function runServer() {
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+  console.error("Google Maps MCP Server running on stdio");
+}
+
+runServer().catch((error) => {
+  console.error("Fatal error running server:", error);
+  process.exit(1);
+});
 
 
