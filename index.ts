@@ -86,7 +86,7 @@ function getApiKey(): string {
 
 const GOOGLE_MAPS_API_KEY = getApiKey();
 
-// Tool definitions
+// Tool definition for Geocode
 const Geocode_Tool: Tool = {
     name: "maps_geocode",
     description: "Convert an address into geographic coordinates",
@@ -102,7 +102,7 @@ const Geocode_Tool: Tool = {
     }
   };
 
-  // API handlers
+  // API handler for Geocode
 async function getGeocode(address: string) {
   const url = new URL("https://maps.googleapis.com/maps/api/geocode/json");
   url.searchParams.append("address", address);
@@ -133,4 +133,58 @@ async function getGeocode(address: string) {
     isError: false
   };
 }
+
+// Tool definition for Geocode to Address
+const Geocode_To_Address: Tool = {
+  name: "maps_reverse_geocode",
+  description: "Convert coordinates into an address",
+  inputSchema: {
+    type: "object",
+    properties: {
+      latitude: {
+        type: "number",
+        description: "Latitude coordinate"
+      },
+      longitude: {
+        type: "number",
+        description: "Longitude coordinate"
+      }
+    },
+    required: ["latitude", "longitude"]
+  }
+};
+
+//Api handler for Geocode to Address
+async function getGeocode_To_Address(latitude: number, longitude: number) {
+  const url = new URL("https://maps.googleapis.com/maps/api/geocode/json");
+  url.searchParams.append("latlng", `${latitude},${longitude}`);
+  url.searchParams.append("key", GOOGLE_MAPS_API_KEY);
+
+  const response = await fetch(url.toString());
+  const data = await response.json() as GeocodeResponse;
+
+  if (data.status !== "OK") {
+    return {
+      content: [{
+        type: "text",
+        text: `Reverse geocoding failed: ${data.error_message || data.status}`
+      }],
+      isError: true
+    };
+  }
+
+  return {
+    content: [{
+      type: "text",
+      text: JSON.stringify({
+        formatted_address: data.results[0].formatted_address,
+        place_id: data.results[0].place_id,
+        address_components: data.results[0].address_components
+      }, null, 2)
+    }],
+    isError: false
+  };
+}
+
+
 
