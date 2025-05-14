@@ -1,0 +1,23 @@
+{
+  "name": "mcp-google-maps",
+  "version": "1.0.0",
+  "description": "MCP Server that uses the Google Places API",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Shaan6695/MCP-GoogleMaps.git"
+  },
+  "keywords": [
+    "MCP",
+    "GooglePlacesAPI"
+  ],
+  "author": "Shaan Malik",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Shaan6695/MCP-GoogleMaps/issues"
+  },
+  "homepage": "https://github.com/Shaan6695/MCP-GoogleMaps#readme"
+}
