@@ -86,4 +86,51 @@ function getApiKey(): string {
 
 const GOOGLE_MAPS_API_KEY = getApiKey();
 
+// Tool definitions
+const Geocode_Tool: Tool = {
+    name: "maps_geocode",
+    description: "Convert an address into geographic coordinates",
+    inputSchema: {
+      type: "object",
+      properties: {
+        address: {
+          type: "string",
+          description: "The address to geocode"
+        }
+      },
+      required: ["address"]
+    }
+  };
+
+  // API handlers
+async function getGeocode(address: string) {
+  const url = new URL("https://maps.googleapis.com/maps/api/geocode/json");
+  url.searchParams.append("address", address);
+  url.searchParams.append("key", GOOGLE_MAPS_API_KEY);
+
+  const response = await fetch(url.toString());
+  const data = await response.json() as GeocodeResponse;
+
+  if (data.status !== "OK") {
+    return {
+      content: [{
+        type: "text",
+        text: `Geocoding failed: ${data.error_message || data.status}`
+      }],
+      isError: true
+    };
+  }
+
+  return {
+    content: [{
+      type: "text",
+      text: JSON.stringify({
+        location: data.results[0].geometry.location,
+        formatted_address: data.results[0].formatted_address,
+        place_id: data.results[0].place_id
+      }, null, 2)
+    }],
+    isError: false
+  };
+}
 
