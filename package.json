@@ -19,5 +19,8 @@
   "bugs": {
     "url": "https://github.com/Shaan6695/MCP-GoogleMaps/issues"
   },
-  "homepage": "https://github.com/Shaan6695/MCP-GoogleMaps#readme"
+  "homepage": "https://github.com/Shaan6695/MCP-GoogleMaps#readme",
+  "devDependencies": {
+    "@types/node": "^22.15.18"
+  }
 }
