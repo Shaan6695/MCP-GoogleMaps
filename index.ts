@@ -137,7 +137,7 @@ async function getGeocode(address: string) {
 // Tool definition for Geocode to Address
 const Geocode_To_Address: Tool = {
   name: "maps_reverse_geocode",
-  description: "Convert coordinates into an address",
+  description: "Convert geo-coordinates into an Address",
   inputSchema: {
     type: "object",
     properties: {
@@ -186,5 +186,80 @@ async function getGeocode_To_Address(latitude: number, longitude: number) {
   };
 }
 
+// Tool definition for Places Search
+const Search_Places: Tool = {
+  name: "maps_search_places",
+  description: "Search for places using the Google Places API",
+  inputSchema: {
+    type: "object",
+    properties: {
+      query: {
+        type: "string",
+        description: "Search query"
+      },
+      location: {
+        type: "object",
+        properties: {
+          latitude: { type: "number" },
+          longitude: { type: "number" }
+        },
+        description: "Optional center point for the search"
+      },
+      radius: {
+        type: "number",
+        description: "Optional Search radius in meters (max 50000)"
+      }
+    },
+    required: ["query"]
+  }
+};
+
+// API handler for Places Search
+async function getPlaceSearch(
+  query: string,
+  location?: { latitude: number; longitude: number },
+  radius?: number
+) {
+  const url = new URL("https://maps.googleapis.com/maps/api/place/textsearch/json");
+  url.searchParams.append("query", query);
+  url.searchParams.append("key", GOOGLE_MAPS_API_KEY);
+
+  if (location) {
+    url.searchParams.append("location", `${location.latitude},${location.longitude}`);
+  }
+  if (radius) {
+    url.searchParams.append("radius", radius.toString());
+  }
+
+  const response = await fetch(url.toString());
+  const data = await response.json() as PlacesSearchResponse;
+
+  if (data.status !== "OK") {
+    return {
+      content: [{
+        type: "text",
+        text: `Place search failed: ${data.error_message || data.status}`
+      }],
+      isError: true
+    };
+  }
+
+  return {
+    content: [{
+      type: "text",
+      text: JSON.stringify({
+        places: data.results.map((place) => ({
+          name: place.name,
+          formatted_address: place.formatted_address,
+          location: place.geometry.location,
+          place_id: place.place_id,
+          rating: place.rating,
+          types: place.types
+        }))
+      }, null, 2)
+    }],
+    isError: false
+  };
+}
 
 
