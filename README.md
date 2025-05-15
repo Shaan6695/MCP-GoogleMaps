@@ -26,7 +26,7 @@
    npm run build
    ```
 * If using Claude Desktop, add this to your claud_desktop_config.json file
-  ```bash
+  ```
   {
     "mcpServers": {
       "MCP-GoogleMaps": {
@@ -40,9 +40,6 @@
       }
     }
   }
-
-```
-
 
 ----------
 ## Available Tools
