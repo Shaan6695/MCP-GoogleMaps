@@ -1,0 +1,26 @@
+{
+  "mcpServers": {
+    "mcp-server-tmdb": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@smithery/cli@latest",
+        "run",
+        "@Laksh-star/mcp-server-tmdb",
+        "--key",
+        "41a8e1e0-4613-4091-8535-e7bc1e6ddc00",
+        "--profile",
+        "peaceful-mole-FDM4Wy"
+      ]
+    },
+    "MCP-GoogleMaps": {
+      "command": "node",
+      "args": [
+        "/Users/maliks/Desktop/MCP-GoogleMaps/dist/index.js"
+      ],
+      "env": {
+        "GOOGLE_MAPS_API_KEY": "AIzaSyDjJWXSW-fNjKSUi4wjvqp1TZblLibg0r0"
+      }
+    }
+  }
+}

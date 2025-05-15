@@ -6,7 +6,7 @@ import {
   ListToolsRequestSchema,
   Tool,
 } from "@modelcontextprotocol/sdk/types.js";
-import fetch from "node-fetch";
+//import fetch from 'node-fetch'; // Added this static import
 
 // Response interface
 interface GoogleMapsResponse {
