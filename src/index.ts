@@ -315,12 +315,72 @@ async function getPlaceDetails(place_id: string) {
   };
 }
 
+// Tool definition for Place Ratings
+const Place_Ratings_Tool: Tool = {
+  name: "maps_place_ratings",
+  description: "Retrieves and summarizes up to 5 ratings for a specific place.",
+  inputSchema: {
+    type: "object",
+    properties: {
+      place_id: {
+        type: "string",
+        description: "The Place ID to retrieve ratings for."
+      }
+    },
+    required: ["place_id"]
+  }
+};
+
+// API handler for Place Ratings
+async function getPlaceRatings(place_id: string) {
+  const url = new URL("https://maps.googleapis.com/maps/api/place/details/json");
+  url.searchParams.append("place_id", place_id);
+  // Request specific fields to be more efficient, including reviews and rating
+  url.searchParams.append("fields", "name,place_id,rating,reviews");
+  url.searchParams.append("key", GOOGLE_MAPS_API_KEY);
+
+  const response = await fetch(url.toString());
+  const data = await response.json() as PlacesDetailsResponse;
+
+  if (data.status !== "OK" || !data.result) {
+    return {
+      content: [{
+        type: "text",
+        text: `Place ratings request failed: ${data.error_message || data.status}`
+      }],
+      isError: true
+    };
+  }
+
+  const { name, rating, reviews } = data.result;
+  const reviewsSummary = reviews ? reviews.slice(0, 5).map(review => ({
+    author: review.author_name,
+    rating: review.rating,
+    text: review.text,
+    time: review.time
+  })) : [];
+
+  return {
+    content: [{
+      type: "text",
+      text: JSON.stringify({
+        place_name: name,
+        overall_rating: rating,
+        reviews_summary: reviewsSummary
+      }, null, 2)
+    }],
+    isError: false
+  };
+}
+
+
 // List of all the tools
 const MAPS_TOOLS = [
   Geocode_Tool,
   Geocode_To_Address,
   Search_Places,
   Specific_Place_Details,
+  Place_Ratings_Tool,
   
 ] as const;
 
@@ -350,7 +410,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         return await getGeocode(address);
       }
 
-      case "maps_reverse_geocode": {
+      case "geocode_to_address": {
         const { latitude, longitude } = request.params.arguments as {
           latitude: number;
           longitude: number;
@@ -370,6 +430,11 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case "maps_place_details": {
         const { place_id } = request.params.arguments as { place_id: string };
         return await getPlaceDetails(place_id);
+      }
+
+      case "maps_place_ratings": { 
+        const { place_id } = request.params.arguments as { place_id: string };
+        return await getPlaceRatings(place_id);
       }
 
       default:
