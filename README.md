@@ -41,6 +41,19 @@
     }
   }
 
+* If using VSCode, go to your vscode/user/settings.json file and add this within the servers curly brace 
+   ```      
+      "MCP-GoogleMaps": {
+         "command": "node",
+         "args": [
+            "/Your_File_Path_Here/dist/index.js"
+         ],
+         "env": {
+            "GOOGLE_MAPS_API_KEY": "your_api_key_here"
+            },
+      },
+   ```
+
 ----------
 ## Available Tools
 
@@ -82,3 +95,4 @@
 
 ### Helpful Links :
 * [Typscript SDK for MCP](https://github.com/modelcontextprotocol/typescript-sdk)
+* [VSCode MCP Integration](https://code.visualstudio.com/docs/copilot/chat/mcp-servers)
