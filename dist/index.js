@@ -1,0 +1,345 @@
+#!/usr/bin/env node
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const index_js_1 = require("@modelcontextprotocol/sdk/server/index.js");
+const stdio_js_1 = require("@modelcontextprotocol/sdk/server/stdio.js");
+const types_js_1 = require("@modelcontextprotocol/sdk/types.js");
+;
+function getApiKey() {
+    const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+    if (!apiKey) {
+        console.error("GOOGLE_MAPS_API_KEY environment variable is not set");
+        process.exit(1);
+    }
+    return apiKey;
+}
+const GOOGLE_MAPS_API_KEY = getApiKey();
+// Tool definition for Geocode
+const Geocode_Tool = {
+    name: "maps_geocode",
+    description: "Convert an address into geographic coordinates",
+    inputSchema: {
+        type: "object",
+        properties: {
+            address: {
+                type: "string",
+                description: "The address to geocode"
+            }
+        },
+        required: ["address"]
+    }
+};
+// API handler for Geocode
+async function getGeocode(address) {
+    const url = new URL("https://maps.googleapis.com/maps/api/geocode/json");
+    url.searchParams.append("address", address);
+    url.searchParams.append("key", GOOGLE_MAPS_API_KEY);
+    const response = await fetch(url.toString());
+    const data = await response.json();
+    if (data.status !== "OK") {
+        return {
+            content: [{
+                    type: "text",
+                    text: `Geocoding failed: ${data.error_message || data.status}`
+                }],
+            isError: true
+        };
+    }
+    return {
+        content: [{
+                type: "text",
+                text: JSON.stringify({
+                    location: data.results[0].geometry.location,
+                    formatted_address: data.results[0].formatted_address,
+                    place_id: data.results[0].place_id
+                }, null, 2)
+            }],
+        isError: false
+    };
+}
+// Tool definition for Geocode to Address
+const Geocode_To_Address = {
+    name: "geocode_to_address",
+    description: "Convert geo-coordinates into an Address",
+    inputSchema: {
+        type: "object",
+        properties: {
+            latitude: {
+                type: "number",
+                description: "Latitude coordinate"
+            },
+            longitude: {
+                type: "number",
+                description: "Longitude coordinate"
+            }
+        },
+        required: ["latitude", "longitude"]
+    }
+};
+//Api handler for Geocode to Address
+async function getGeocode_To_Address(latitude, longitude) {
+    const url = new URL("https://maps.googleapis.com/maps/api/geocode/json");
+    url.searchParams.append("latlng", `${latitude},${longitude}`);
+    url.searchParams.append("key", GOOGLE_MAPS_API_KEY);
+    const response = await fetch(url.toString());
+    const data = await response.json();
+    if (data.status !== "OK") {
+        return {
+            content: [{
+                    type: "text",
+                    text: `Reverse geocoding failed: ${data.error_message || data.status}`
+                }],
+            isError: true
+        };
+    }
+    return {
+        content: [{
+                type: "text",
+                text: JSON.stringify({
+                    formatted_address: data.results[0].formatted_address,
+                    place_id: data.results[0].place_id,
+                    address_components: data.results[0].address_components
+                }, null, 2)
+            }],
+        isError: false
+    };
+}
+// Tool definition for Places Search
+const Search_Places = {
+    name: "maps_search_places",
+    description: "Search for places using the Google Places API",
+    inputSchema: {
+        type: "object",
+        properties: {
+            query: {
+                type: "string",
+                description: "Search query"
+            },
+            location: {
+                type: "object",
+                properties: {
+                    latitude: { type: "number" },
+                    longitude: { type: "number" }
+                },
+                description: "Optional center point for the search"
+            },
+            radius: {
+                type: "number",
+                description: "Optional Search radius in meters (max 50000)"
+            }
+        },
+        required: ["query"]
+    }
+};
+// API handler for Places Search
+async function getPlaceSearch(query, location, radius) {
+    const url = new URL("https://maps.googleapis.com/maps/api/place/textsearch/json");
+    url.searchParams.append("query", query);
+    url.searchParams.append("key", GOOGLE_MAPS_API_KEY);
+    if (location) {
+        url.searchParams.append("location", `${location.latitude},${location.longitude}`);
+    }
+    if (radius) {
+        url.searchParams.append("radius", radius.toString());
+    }
+    const response = await fetch(url.toString());
+    const data = await response.json();
+    if (data.status !== "OK") {
+        return {
+            content: [{
+                    type: "text",
+                    text: `Place search failed: ${data.error_message || data.status}`
+                }],
+            isError: true
+        };
+    }
+    return {
+        content: [{
+                type: "text",
+                text: JSON.stringify({
+                    places: data.results.map((place) => ({
+                        name: place.name,
+                        formatted_address: place.formatted_address,
+                        location: place.geometry.location,
+                        place_id: place.place_id,
+                        rating: place.rating,
+                        types: place.types
+                    }))
+                }, null, 2)
+            }],
+        isError: false
+    };
+}
+// Tool definition for Specific Place Details
+const Specific_Place_Details = {
+    name: "maps_place_details",
+    description: "Get detailed information about a specific place",
+    inputSchema: {
+        type: "object",
+        properties: {
+            place_id: {
+                type: "string",
+                description: "The place ID to get details for"
+            }
+        },
+        required: ["place_id"]
+    }
+};
+// API handler for Specific Place Details
+async function getPlaceDetails(place_id) {
+    const url = new URL("https://maps.googleapis.com/maps/api/place/details/json");
+    url.searchParams.append("place_id", place_id);
+    url.searchParams.append("key", GOOGLE_MAPS_API_KEY);
+    const response = await fetch(url.toString());
+    const data = await response.json();
+    if (data.status !== "OK") {
+        return {
+            content: [{
+                    type: "text",
+                    text: `Place details request failed: ${data.error_message || data.status}`
+                }],
+            isError: true
+        };
+    }
+    return {
+        content: [{
+                type: "text",
+                text: JSON.stringify({
+                    name: data.result.name,
+                    formatted_address: data.result.formatted_address,
+                    location: data.result.geometry.location,
+                    formatted_phone_number: data.result.formatted_phone_number,
+                    website: data.result.website,
+                    rating: data.result.rating,
+                    reviews: data.result.reviews,
+                    opening_hours: data.result.opening_hours
+                }, null, 2)
+            }],
+        isError: false
+    };
+}
+// Tool definition for Place Ratings
+const Place_Ratings_Tool = {
+    name: "maps_place_ratings",
+    description: "Retrieves and summarizes up to 5 ratings for a specific place.",
+    inputSchema: {
+        type: "object",
+        properties: {
+            place_id: {
+                type: "string",
+                description: "The Place ID to retrieve ratings for."
+            }
+        },
+        required: ["place_id"]
+    }
+};
+// API handler for Place Ratings
+async function getPlaceRatings(place_id) {
+    const url = new URL("https://maps.googleapis.com/maps/api/place/details/json");
+    url.searchParams.append("place_id", place_id);
+    // Request specific fields to be more efficient, including reviews and rating
+    url.searchParams.append("fields", "name,place_id,rating,reviews");
+    url.searchParams.append("key", GOOGLE_MAPS_API_KEY);
+    const response = await fetch(url.toString());
+    const data = await response.json();
+    if (data.status !== "OK" || !data.result) {
+        return {
+            content: [{
+                    type: "text",
+                    text: `Place ratings request failed: ${data.error_message || data.status}`
+                }],
+            isError: true
+        };
+    }
+    const { name, rating, reviews } = data.result;
+    const reviewsSummary = reviews ? reviews.slice(0, 5).map(review => ({
+        author: review.author_name,
+        rating: review.rating,
+        text: review.text,
+        time: review.time
+    })) : [];
+    return {
+        content: [{
+                type: "text",
+                text: JSON.stringify({
+                    place_name: name,
+                    overall_rating: rating,
+                    reviews_summary: reviewsSummary
+                }, null, 2)
+            }],
+        isError: false
+    };
+}
+// List of all the tools
+const MAPS_TOOLS = [
+    Geocode_Tool,
+    Geocode_To_Address,
+    Search_Places,
+    Specific_Place_Details,
+    Place_Ratings_Tool,
+];
+// Server setup
+const server = new index_js_1.Server({
+    name: "mcp-server/google-places-mcp",
+    version: "0.1.0",
+}, {
+    capabilities: {
+        tools: {},
+    },
+});
+// Set up request handlers
+server.setRequestHandler(types_js_1.ListToolsRequestSchema, async () => ({
+    tools: MAPS_TOOLS,
+}));
+server.setRequestHandler(types_js_1.CallToolRequestSchema, async (request) => {
+    try {
+        switch (request.params.name) {
+            case "maps_geocode": {
+                const { address } = request.params.arguments;
+                return await getGeocode(address);
+            }
+            case "geocode_to_address": {
+                const { latitude, longitude } = request.params.arguments;
+                return await getGeocode_To_Address(latitude, longitude);
+            }
+            case "maps_search_places": {
+                const { query, location, radius } = request.params.arguments;
+                return await getPlaceSearch(query, location, radius);
+            }
+            case "maps_place_details": {
+                const { place_id } = request.params.arguments;
+                return await getPlaceDetails(place_id);
+            }
+            case "maps_place_ratings": {
+                const { place_id } = request.params.arguments;
+                return await getPlaceRatings(place_id);
+            }
+            default:
+                return {
+                    content: [{
+                            type: "text",
+                            text: `Unknown tool: ${request.params.name}`
+                        }],
+                    isError: true
+                };
+        }
+    }
+    catch (error) {
+        return {
+            content: [{
+                    type: "text",
+                    text: `Error: ${error instanceof Error ? error.message : String(error)}`
+                }],
+            isError: true
+        };
+    }
+});
+async function runServer() {
+    const transport = new stdio_js_1.StdioServerTransport();
+    await server.connect(transport);
+    console.error("Google Maps MCP Server running on stdio");
+}
+runServer().catch((error) => {
+    console.error("Fatal error running server:", error);
+    process.exit(1);
+});

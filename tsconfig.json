@@ -1,11 +1,15 @@
 {
-    // "extends": "../MCP-GoogleMaps/tsconfig.json",
-    "compilerOptions": {
-      "outDir": "./dist",
-      "rootDir": "."
-    },
-    "include": [
-      "./**/*.ts"
-    ]
-  }
-  
+  "compilerOptions": {
+    "target": "es2020", // Or a newer ES version
+    "module": "CommonJS", // Important for how imports/exports are handled
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true, // Often helpful for interop between CJS and ESM
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": [
+    "./src/**/*.ts"
+  ]
+}
