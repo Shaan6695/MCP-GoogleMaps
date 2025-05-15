@@ -92,6 +92,30 @@
    - Input:
        - Required : `place_id` (String)
    - Returns: `author`, `rating`, `text`, `time`
+  
+## Example Usage
+* #### Searching for Places
+```
+Give me restaurants near NJIT
+```
+* #### Getting details about a Specific Place
+```
+Give me details about NJIT
+```
+* #### Detailed ratings for a Place
+```
+Give me ratings for Good Morning Newark Halal Food
+```
+* #### Get coordinates from an address
+```
+Give me the coordinates for this address - 100 Summit St, Newark, NJ 07103
+```
+* #### Get an Address from Coordinates
+```
+Where is this? 
+Latitude - 30.021530 
+Longitude - 31.071171
+```
 
 ### Helpful Links :
 * [Typscript SDK for MCP](https://github.com/modelcontextprotocol/typescript-sdk)
