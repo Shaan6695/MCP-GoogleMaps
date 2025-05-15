@@ -4,7 +4,45 @@
 ## Project Setup Instructions
 
 
-1. Get a Google Maps API key by following the instructions [here](https://developers.google.com/maps/documentation/javascript/get-api-key#create-api-keys).
+* Get a Google Maps API key by following the instructions [here](https://developers.google.com/maps/documentation/javascript/get-api-key#create-api-keys).
+
+* Clone the repository and enter the project folder:
+   ```bash
+   git clone https://github.com/Shaan6695/MCP-GoogleMaps.git
+   ```
+   ```
+   cd MCP-GoogleMaps
+   ```
+* Install dependencies:
+   ```bash
+   npm install
+   ```
+* Create a `.env` file in the project root and add your API key:
+   ```bash
+   GOOGLE_MAPS_API_KEY = your_api_key_here  
+   ```
+* Build the TypeScript source file:
+   ```bash
+   npm run build
+   ```
+* If using Claude Desktop, add this to your claud_desktop_config.json file
+  ```bash
+  {
+    "mcpServers": {
+      "MCP-GoogleMaps": {
+        "command": "node",
+        "args": [
+          "/Your_File_Path_Here/dist/index.js"
+      ],
+        "env": {
+          "GOOGLE_MAPS_API_KEY": "your_api_key_here"
+        }
+      }
+    }
+  }
+
+```
+
 
 ----------
 ## Available Tools
